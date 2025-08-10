@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: admin
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 20000
+      maximum-pool-size: 15
+      idle-timeout: 60000
+      minimum-idle: 2
+      initialization-fail-timeout: -1
+
+jwt:
+  secret: "0123456789abcdef0123456789abcdef"

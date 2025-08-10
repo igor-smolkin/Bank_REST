@@ -1,8 +1,14 @@
-#
-# application.yml — главный конфигурационный файл Spring Boot.
+spring:
+  liquibase:
+    change-log: classpath:/db/migration/db.migration-master.yml
+    enabled: true
 
-Что нужно сделать:
-  - Указать настройки подключения к базе данных.
-  - Указать порт приложения.
-  - Настроить параметры безопасности и JWT.
-  - Включить Swagger UI.
+logging:
+  level:
+    root: INFO
+
+# Что нужно сделать:
+#  - Указать настройки подключения к базе данных.
+#  - Указать порт приложения.
+#  - Настроить параметры безопасности и JWT.
+#  - Включить Swagger UI.
