@@ -58,6 +58,7 @@ public class JwtService {
 
         return Jwts.builder()
                 .subject(username)
+                .claim("userId", userId)
                 .claim("role", roleName)
                 .issuedAt(new Date())
                 .expiration(getAccessTokenExpiryDate())

@@ -1,0 +1,31 @@
+package com.example.bankcards.controller;
+
+import com.example.bankcards.dto.card.create.RequestCreateCardDto;
+import com.example.bankcards.dto.card.create.ResponseCreateCardDto;
+import com.example.bankcards.service.CardService;
+import com.example.bankcards.util.SecurityUtil;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.UUID;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/cards")
+public class CardController {
+
+    private final CardService cardService;
+    private final SecurityUtil securityUtil;
+
+    @PostMapping
+    public ResponseEntity<ResponseCreateCardDto> createCard(@RequestBody RequestCreateCardDto request) {
+        UUID userId = securityUtil.getCurrentUserId();
+        ResponseCreateCardDto response = cardService.createNewCard(request, userId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+}

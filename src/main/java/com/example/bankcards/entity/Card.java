@@ -21,8 +21,8 @@ public class Card {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "card_number", nullable = false)
-    private byte[] cardNumber;
+    @Column(name = "card_number", length = 16, nullable = false)
+    private String cardNumber;
 
     @Column(name = "last4", length = 4, nullable = false)
     private String last4;
@@ -45,4 +45,7 @@ public class Card {
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
+
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
 }

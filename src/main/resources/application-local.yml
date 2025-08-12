@@ -12,4 +12,4 @@ spring:
       initialization-fail-timeout: -1
 
 jwt:
-  secret: "0123456789abcdef0123456789abcdef"
+  secret: "30d3a11241cf81068a2d0c19d8974787e46b2abad2a2738b849753b0d41f351a"
