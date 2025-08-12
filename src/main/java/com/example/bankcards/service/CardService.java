@@ -107,6 +107,7 @@ public class CardService {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseCardDto blockCard(UUID cardId) {
         String email = securityUtil.getCurrentUsername();
         Card card = cardRepository.findById(cardId)
@@ -123,6 +124,38 @@ public class CardService {
         cardRepository.save(card);
 
         log.info("Admin '{}' blocked card '{}'", email, cardId);
+        return cardMapper.toDto(card);
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseCardDto activateCard(UUID cardId) {
+        String email = securityUtil.getCurrentUsername();
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> {
+                    log.warn("Activating error: card with id '{}' not found", cardId);
+                    return new NotFoundException("card not found");
+                });
+
+        if (card.getStatus() == CardStatus.ACTIVE) {
+            throw new ConflictException("Card already activated");
+        }
+
+        card.setStatus(CardStatus.ACTIVE);
+        cardRepository.save(card);
+
+        log.info("Admin '{}' activated card '{}'", email, cardId);
+        return cardMapper.toDto(card);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseCardDto findCardById(UUID cardId) {
+        String email = securityUtil.getCurrentUsername();
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> {
+                    log.warn("Searching error: card with id '{}' not found", cardId);
+                    return new NotFoundException("card not found");
+                });
         return cardMapper.toDto(card);
     }
 

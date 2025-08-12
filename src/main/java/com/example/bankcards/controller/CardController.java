@@ -40,9 +40,21 @@ public class CardController {
         return cardService.findAllCards(page, size);
     }
 
-    @PatchMapping("/{cardId}")
+    @PatchMapping("/{cardId}/block")
     public ResponseEntity<ResponseCardDto> blockCard(@PathVariable UUID cardId) {
         ResponseCardDto response = cardService.blockCard(cardId);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PatchMapping("/{cardId}/activate")
+    public ResponseEntity<ResponseCardDto> activateCard(@PathVariable UUID cardId) {
+        ResponseCardDto response = cardService.activateCard(cardId);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @GetMapping("/{cardId}")
+    public ResponseEntity<ResponseCardDto> getCardById(@PathVariable UUID cardId) {
+        ResponseCardDto response = cardService.findCardById(cardId);
         return ResponseEntity.ok().body(response);
     }
 }
