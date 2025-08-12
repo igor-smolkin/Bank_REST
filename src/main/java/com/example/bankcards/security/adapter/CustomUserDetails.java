@@ -16,10 +16,6 @@ public class CustomUserDetails implements UserDetails {
 
     private final User user;
 
-    public UUID getUserId() {
-        return user.getId();
-    }
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
@@ -52,6 +48,10 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true; // TODO
+        return user.isEnabled();
+    }
+
+    public UUID getUserId() {
+        return user.getId();
     }
 }

@@ -4,10 +4,11 @@
 CREATE TABLE users
 (
     id         UUID PRIMARY KEY default gen_random_uuid(),
-    email      VARCHAR(64) NOT NULL UNIQUE,
-    password   VARCHAR(60) NOT NULL,
-    role       VARCHAR(20) NOT NULL,
-    created_at timestamp        default now()
+    email      VARCHAR(64)                   NOT NULL UNIQUE,
+    password   VARCHAR(60)                   NOT NULL,
+    role       VARCHAR(20)                   NOT NULL,
+    created_at timestamp        default now(),
+    is_enabled boolean          default TRUE NOT NULL
 );
 
 CREATE TABLE cards
@@ -26,8 +27,8 @@ CREATE TABLE cards
 
 CREATE TABLE refresh_tokens
 (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    token text NOT NULL,
+    id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id     uuid      NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    token       text      NOT NULL,
     expiry_date timestamp NOT NULL
 );
