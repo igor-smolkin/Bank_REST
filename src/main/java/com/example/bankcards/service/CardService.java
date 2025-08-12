@@ -2,10 +2,13 @@ package com.example.bankcards.service;
 
 import com.example.bankcards.dto.card.create.RequestCreateCardDto;
 import com.example.bankcards.dto.card.create.ResponseCreateCardDto;
+import com.example.bankcards.dto.card.select.ResponseCardDto;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardStatus;
 import com.example.bankcards.entity.User;
+import com.example.bankcards.exception.ConflictException;
 import com.example.bankcards.exception.NotFoundException;
+import com.example.bankcards.mapper.CardMapper;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.util.SecurityUtil;
@@ -13,13 +16,19 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.YearMonth;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -33,6 +42,7 @@ public class CardService {
     private final CardRepository cardRepository;
     private final SecurityUtil securityUtil;
     private final UserRepository userRepository;
+    private final CardMapper cardMapper;
 
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
@@ -83,10 +93,37 @@ public class CardService {
         String email = securityUtil.getCurrentUsername();
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> {
-                    log.warn("card with id '{}' not found", cardId);
+                    log.warn("Delete error: card with id '{}' not found", cardId);
                     return new NotFoundException("card not found");
                 });
         cardRepository.delete(card);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public Page<ResponseCardDto> findAllCards(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return cardRepository.findAll(pageable)
+                .map(cardMapper::toDto);
+    }
+
+    @Transactional
+    public ResponseCardDto blockCard(UUID cardId) {
+        String email = securityUtil.getCurrentUsername();
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> {
+                    log.warn("Blocking error: card with id '{}' not found", cardId);
+                    return new NotFoundException("card not found");
+                });
+
+        if (card.getStatus() == CardStatus.BLOCKED) {
+            throw new ConflictException("Card already blocked");
+        }
+
+        card.setStatus(CardStatus.BLOCKED);
+        cardRepository.save(card);
+
+        log.info("Admin '{}' blocked card '{}'", email, cardId);
+        return cardMapper.toDto(card);
     }
 
     public String generateCardNumber() {
@@ -106,6 +143,6 @@ public class CardService {
     }
 
     public String getMasked(String last4) {
-        return "**** **** **** **** " + last4;
+        return "**** **** **** " + last4;
     }
 }
