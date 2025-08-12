@@ -5,6 +5,7 @@ import com.example.bankcards.dto.card.create.ResponseCreateCardDto;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardStatus;
 import com.example.bankcards.entity.User;
+import com.example.bankcards.exception.NotFoundException;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.util.SecurityUtil;
@@ -12,6 +13,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -32,6 +34,7 @@ public class CardService {
     private final SecurityUtil securityUtil;
     private final UserRepository userRepository;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public ResponseCreateCardDto createNewCard(RequestCreateCardDto dto, UUID userId) {
         int attempts = 0;
@@ -71,6 +74,19 @@ public class CardService {
                 }
             }
         }
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
+    public void deleteCard(UUID cardId) {
+        log.info("deleting card '{}'", cardId);
+        String email = securityUtil.getCurrentUsername();
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> {
+                    log.warn("card with id '{}' not found", cardId);
+                    return new NotFoundException("card not found");
+                });
+        cardRepository.delete(card);
     }
 
     public String generateCardNumber() {
