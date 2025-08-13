@@ -1,7 +1,7 @@
 spring:
   liquibase:
     change-log: classpath:/db/migration/db.migration-master.yml
-    enabled: true
+    enabled: false
 
 logging:
   level:

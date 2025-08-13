@@ -23,8 +23,7 @@ public class CardController {
 
     @PostMapping
     public ResponseEntity<ResponseCreateCardDto> createCard(@RequestBody RequestCreateCardDto request) {
-        UUID userId = securityUtil.getCurrentUserId();
-        ResponseCreateCardDto response = cardService.createNewCard(request, userId);
+        ResponseCreateCardDto response = cardService.createNewCard(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

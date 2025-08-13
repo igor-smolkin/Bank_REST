@@ -46,7 +46,8 @@ public class CardService {
 
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
-    public ResponseCreateCardDto createNewCard(RequestCreateCardDto dto, UUID userId) {
+    public ResponseCreateCardDto createNewCard(RequestCreateCardDto dto) {
+        UUID userId = securityUtil.getCurrentUserId();
         int attempts = 0;
         String email = securityUtil.getCurrentUsername();
         log.info("Создание карты администратором '{}'", email);
