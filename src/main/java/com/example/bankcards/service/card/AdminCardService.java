@@ -46,8 +46,7 @@ public class AdminCardService {
 
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
-    public ResponseCreateCardDto createNewCard(RequestCreateCardDto dto) {
-        UUID userId = securityUtil.getCurrentUserId();
+    public ResponseCreateCardDto createNewCard(UUID userId, RequestCreateCardDto dto) {
         int attempts = 0;
         String email = securityUtil.getCurrentUsername();
         log.info("Создание карты администратором '{}'", email);
@@ -101,7 +100,7 @@ public class AdminCardService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    public Page<ResponseCardDto> findAllCards(int page, int size) {
+    public Page<ResponseCardDto> getAllCards(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return cardRepository.findAll(pageable)
                 .map(cardMapper::toDto);

@@ -15,48 +15,49 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/cards")
+@RequestMapping("/api/admin")
 public class AdminCardController {
 
     private final AdminCardService adminCardService;
 
-    @PostMapping
-    public ResponseEntity<ResponseCreateCardDto> createCard(@RequestBody RequestCreateCardDto request) {
-        ResponseCreateCardDto response = adminCardService.createNewCard(request);
+    @PostMapping("/cards/{userId}")
+    public ResponseEntity<ResponseCreateCardDto> createCard(@PathVariable UUID userId,
+                                                            @RequestBody RequestCreateCardDto request) {
+        ResponseCreateCardDto response = adminCardService.createNewCard(userId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @DeleteMapping("/{cardId}")
+    @DeleteMapping("/cards/{cardId}")
     public ResponseEntity<Void> deleteCard(@PathVariable UUID cardId) {
         adminCardService.deleteCard(cardId);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping
+    @GetMapping("/cards")
     public Page<ResponseCardDto> getAllCards(@RequestParam(defaultValue = "0") int page,
                                              @RequestParam(defaultValue = "10") int size) {
-        return adminCardService.findAllCards(page, size);
+        return adminCardService.getAllCards(page, size);
     }
 
-    @PatchMapping("/{cardId}/block")
+    @PatchMapping("/cards/{cardId}/block")
     public ResponseEntity<ResponseCardDto> blockCard(@PathVariable UUID cardId) {
         ResponseCardDto response = adminCardService.blockCard(cardId);
         return ResponseEntity.ok().body(response);
     }
 
-    @PatchMapping("/{cardId}/activate")
+    @PatchMapping("/cards/{cardId}/activate")
     public ResponseEntity<ResponseCardDto> activateCard(@PathVariable UUID cardId) {
         ResponseCardDto response = adminCardService.activateCard(cardId);
         return ResponseEntity.ok().body(response);
     }
 
-    @GetMapping("/{cardId}")
+    @GetMapping("/cards/{cardId}")
     public ResponseEntity<ResponseCardDto> getCardById(@PathVariable UUID cardId) {
         ResponseCardDto response = adminCardService.findCardById(cardId);
         return ResponseEntity.ok().body(response);
     }
 
-    @PatchMapping("/block-requests/{requestId}/approve")
+    @PatchMapping("/cards/block-requests/{requestId}/approve")
     public ResponseEntity<ResponseBlockDto> approveBlockRequest(@PathVariable UUID requestId) {
         ResponseBlockDto response = adminCardService.approveBlockRequest(requestId);
         return ResponseEntity.ok().body(response);
