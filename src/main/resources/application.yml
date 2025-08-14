@@ -1,14 +1,8 @@
 spring:
   liquibase:
     change-log: classpath:/db/migration/db.migration-master.yml
-    enabled: false
+    enabled: true
 
 logging:
   level:
     root: INFO
-
-# Что нужно сделать:
-#  - Указать настройки подключения к базе данных.
-#  - Указать порт приложения.
-#  - Настроить параметры безопасности и JWT.
-#  - Включить Swagger UI.
