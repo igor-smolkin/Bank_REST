@@ -38,76 +38,8 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final RefreshTokenRepository refreshTokenRepository;
-    private final AuthenticationManager authenticationManager;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
     private final SecurityUtil securityUtil;
     private final UserMapper userMapper;
-
-    @Transactional
-    public ResponseRegisterDto register (RequestRegisterDto dto) {
-        log.info("try register"); // TODO - нормальные логи
-        if (userRepository.existsByEmail(dto.getEmail())) {
-            log.warn("already exists"); // TODO - нормальные логи
-            throw new ConflictException("already exists");
-        }
-
-        String hashedPassword = passwordEncoder.encode(dto.getPassword());
-
-        User user = User.builder()
-                .email(dto.getEmail())
-                .password(hashedPassword)
-                .role(UserRole.USER)
-                .createdAt(Instant.now())
-                .isEnabled(true)
-                .build();
-
-        userRepository.save(user);
-        log.info("user created"); // TODO - нормальные логи
-
-        return ResponseRegisterDto.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .build();
-    }
-
-    public ResponseLoginDto login (RequestLoginDto dto) {
-        try {
-            log.info("try login"); // TODO - нормальные логи
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            dto.getEmail(),
-                            dto.getPassword()
-                    )
-            );
-
-            User user = userRepository.findByEmail(authentication.getName())
-                    .orElseThrow(() -> new NotFoundException("user not found"));
-
-            String accessToken = jwtService.generateAccessToken(user.getEmail(), user.getId(), user.getRole().name());
-            String refreshToken = jwtService.generateRefreshToken(user.getEmail());
-
-            Date expiryDate = jwtService.getRefreshTokenExpiryDate();
-
-            refreshTokenRepository.save(
-                    RefreshToken.builder()
-                            .user(user)
-                            .token(refreshToken)
-                            .expiryDate(expiryDate.toInstant())
-                            .build()
-            );
-
-            log.info("success login"); // TODO - нормальные логи
-            return new ResponseLoginDto(accessToken, refreshToken);
-        } catch (BadCredentialsException e) {
-            log.warn("wrong login or pass"); // TODO - нормальные логи
-            throw e;
-        } catch (DisabledException e) {
-            log.warn("user disabled"); // TODO - нормальные логи
-            throw e;
-        }
-    }
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")

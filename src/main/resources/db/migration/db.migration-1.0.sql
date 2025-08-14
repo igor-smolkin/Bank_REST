@@ -39,9 +39,20 @@ CREATE TABLE transactions
     status           VARCHAR(20) NOT NULL,
     amount           BIGINT      NOT NULL,
     from_card        UUID references cards (id),
-    from_card_last4 CHAR(4) NOT NULL,
+    from_card_last4  CHAR(4)     NOT NULL,
     to_card          UUID references cards (id),
-    to_card_last4 CHAR(4) NOT NULL,
+    to_card_last4    CHAR(4)     NOT NULL,
     transaction_date timestamp   NOT NULL default now(),
     balance_after    BIGINT      NOT NULL
+);
+
+CREATE TABLE card_block_requests
+(
+    id           UUID PRIMARY KEY     DEFAULT gen_random_uuid(),
+    card_id      UUID references cards (id),
+    user_id      UUID references users (id),
+    reason       VARCHAR(64) NOT NULL,
+    status       VARCHAR(20) NOT NULL,
+    requested_at timestamp   NOT NULL default now(),
+    processed_at timestamp
 );

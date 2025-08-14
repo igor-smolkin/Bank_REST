@@ -71,14 +71,12 @@ public class TransactionService {
 
         transactionRepository.save(transaction);
 
-        log.info("Transfer '{}' -> '{}' performed successfully", maskCard(fromCard.getLast4()), maskCard(toCard.getLast4()));
+        log.info("Transfer '{}' -> '{}' performed successfully", getMasked(fromCard.getLast4()), getMasked(toCard.getLast4()));
 
         return transactionMapper.toDto(transaction);
     }
 
-    private String maskCard(String cardNumber) {
-        if (cardNumber == null || !cardNumber.matches("\\d{16}")) return "****";
-        String last4 = cardNumber.substring(cardNumber.length() - 4);
+    public String getMasked(String last4) {
         return "**** **** **** " + last4;
     }
 
@@ -92,7 +90,7 @@ public class TransactionService {
                 });
 
         return ResponseBalanceDto.builder()
-                .maskedCard(maskCard(card.getCardNumber()))
+                .maskedCard(getMasked(card.getLast4()))
                 .balance(card.getBalance())
                 .build();
     }

@@ -1,16 +1,18 @@
-package com.example.bankcards.service;
+package com.example.bankcards.service.card;
 
 import com.example.bankcards.dto.card.create.RequestCreateCardDto;
 import com.example.bankcards.dto.card.create.ResponseCreateCardDto;
+import com.example.bankcards.dto.card.request.ResponseBlockDto;
 import com.example.bankcards.dto.card.select.ResponseCardDto;
 import com.example.bankcards.entity.Card;
+import com.example.bankcards.entity.CardBlockRequest;
 import com.example.bankcards.entity.CardStatus;
-import com.example.bankcards.entity.User;
+import com.example.bankcards.entity.RequestStatus;
 import com.example.bankcards.exception.ConflictException;
 import com.example.bankcards.exception.NotFoundException;
 import com.example.bankcards.mapper.CardMapper;
+import com.example.bankcards.repository.CardBlockRequestRepository;
 import com.example.bankcards.repository.CardRepository;
-import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.util.SecurityUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -26,22 +28,20 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.YearMonth;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CardService {
+public class AdminCardService {
 
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final int MAX_RETRIES = 5;
     private final int CARD_VALIDITY_YEARS = 3;
 
+    private final CardBlockRequestRepository cardBlockRepository;
     private final CardRepository cardRepository;
     private final SecurityUtil securityUtil;
-    private final UserRepository userRepository;
     private final CardMapper cardMapper;
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -158,6 +158,44 @@ public class CardService {
                     return new NotFoundException("card not found");
                 });
         return cardMapper.toDto(card);
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseBlockDto approveBlockRequest(UUID requestId) {
+        String email = securityUtil.getCurrentUsername();
+        CardBlockRequest request = cardBlockRepository.findById(requestId)
+                .orElseThrow(() -> {
+                    log.warn("Approving block request error: request with id '{}' not found", requestId);
+                    return new NotFoundException("request not found");
+                });
+
+        if (!request.getStatus().equals(RequestStatus.PENDING)) {
+            log.warn("Approving block request error: request with id '{}' already processed", requestId);
+            throw new ConflictException("request already processed");
+        }
+
+        Card card = cardRepository.findById(request.getCardId())
+                .orElseThrow(() -> {
+                    log.warn("Approving block request error: card with id '{}' not found", request.getCardId());
+                    return new NotFoundException("card not found");
+                });
+
+        card.setStatus(CardStatus.BLOCKED);
+        cardRepository.save(card);
+
+        request.setStatus(RequestStatus.APPROVED);
+        request.setProcessedAt(Instant.now());
+        cardBlockRepository.save(request);
+
+        log.info("Blocking request '{}' approved, card '{}' blocked by administrator '{}'", requestId, request.getCardId(), email);
+
+        return ResponseBlockDto.builder()
+                .requestId(requestId)
+                .maskedCard(getMasked(card.getLast4()))
+                .status(request.getStatus())
+                .createdAt(request.getRequestedAt())
+                .build();
     }
 
     public String generateCardNumber() {
