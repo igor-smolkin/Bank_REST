@@ -1,5 +1,6 @@
 package com.example.bankcards.service;
 
+import com.example.bankcards.dto.transaction.balance.ResponseBalanceDto;
 import com.example.bankcards.dto.transaction.transfer.RequestTransferDto;
 import com.example.bankcards.dto.transaction.transfer.ResponseTransferDto;
 import com.example.bankcards.entity.Card;
@@ -11,6 +12,7 @@ import com.example.bankcards.mapper.TransactionMapper;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.TransactionRepository;
 import com.example.bankcards.util.SecurityUtil;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,7 @@ public class TransactionService {
     private final SecurityUtil securityUtil;
     private final TransactionMapper transactionMapper;
 
+    @Transactional
     public ResponseTransferDto transferByUser(RequestTransferDto dto) {
         UUID userId = securityUtil.getCurrentUserId();
 
@@ -74,8 +77,23 @@ public class TransactionService {
     }
 
     private String maskCard(String cardNumber) {
-        if (cardNumber == null || cardNumber.length() < 4) return "****";
+        if (cardNumber == null || !cardNumber.matches("\\d{16}")) return "****";
         String last4 = cardNumber.substring(cardNumber.length() - 4);
         return "**** **** **** " + last4;
+    }
+
+    public ResponseBalanceDto checkBalanceByUser(UUID cardId) {
+        UUID userId = securityUtil.getCurrentUserId();
+
+        Card card = cardRepository.findByIdAndUserId(cardId, userId)
+                .orElseThrow(() -> {
+                    log.warn("User '{}' check balance error: card '{}' not found or not yours", userId, cardId);
+                    return new NotFoundException("card not found or not yours");
+                });
+
+        return ResponseBalanceDto.builder()
+                .maskedCard(maskCard(card.getCardNumber()))
+                .balance(card.getBalance())
+                .build();
     }
 }
