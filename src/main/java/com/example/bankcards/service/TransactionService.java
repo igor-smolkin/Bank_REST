@@ -42,13 +42,13 @@ public class TransactionService {
 
         Card toCard = cardRepository.findByIdAndUserId(dto.getToCard(), userId)
                 .orElseThrow(() -> {
-                    log.warn("User transfer error: Receiver card '{}' not found or not yours", dto.getFromCard());
+                    log.warn("User transfer error: Receiver card '{}' not found or not yours", dto.getToCard());
                     return new NotFoundException("receiver card not found or not yours");
                 });
         return performTransfer(fromCard, toCard, dto.getAmount());
     }
 
-    private ResponseTransferDto performTransfer(Card fromCard, Card toCard, Long amount) {
+    ResponseTransferDto performTransfer(Card fromCard, Card toCard, Long amount) {
         if (fromCard.getBalance() < amount) {
             log.warn("Perform transfer transaction error: not enough balance for transaction");
             throw new NotEnoughBalanceException("not enough balance for transaction");
@@ -76,10 +76,6 @@ public class TransactionService {
         return transactionMapper.toDto(transaction);
     }
 
-    public String getMasked(String last4) {
-        return "**** **** **** " + last4;
-    }
-
     public ResponseBalanceDto checkBalanceByUser(UUID cardId) {
         UUID userId = securityUtil.getCurrentUserId();
 
@@ -93,5 +89,9 @@ public class TransactionService {
                 .maskedCard(getMasked(card.getLast4()))
                 .balance(card.getBalance())
                 .build();
+    }
+
+    public String getMasked(String last4) {
+        return "**** **** **** " + last4;
     }
 }

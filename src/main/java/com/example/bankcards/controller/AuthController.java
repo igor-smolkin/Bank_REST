@@ -5,7 +5,6 @@ import com.example.bankcards.dto.user.login.ResponseLoginDto;
 import com.example.bankcards.dto.user.register.RequestRegisterDto;
 import com.example.bankcards.dto.user.register.ResponseRegisterDto;
 import com.example.bankcards.service.AuthService;
-import com.example.bankcards.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

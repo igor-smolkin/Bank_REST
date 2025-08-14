@@ -30,7 +30,7 @@ public class AdminCardController {
     @DeleteMapping("/cards/{cardId}")
     public ResponseEntity<Void> deleteCard(@PathVariable UUID cardId) {
         adminCardService.deleteCard(cardId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/cards")

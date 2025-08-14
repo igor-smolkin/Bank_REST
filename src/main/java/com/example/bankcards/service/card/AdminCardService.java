@@ -8,6 +8,7 @@ import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardBlockRequest;
 import com.example.bankcards.entity.CardStatus;
 import com.example.bankcards.entity.RequestStatus;
+import com.example.bankcards.exception.CardNumberGenerationException;
 import com.example.bankcards.exception.ConflictException;
 import com.example.bankcards.exception.NotFoundException;
 import com.example.bankcards.mapper.CardMapper;
@@ -49,7 +50,7 @@ public class AdminCardService {
     public ResponseCreateCardDto createNewCard(UUID userId, RequestCreateCardDto dto) {
         int attempts = 0;
         String email = securityUtil.getCurrentUsername();
-        log.info("Создание карты администратором '{}'", email);
+        log.info("Card creating by admin '{}'", email);
         while (true) {
             attempts++;
             String cardNumber = generateCardNumber();
@@ -77,10 +78,10 @@ public class AdminCardService {
                         .balance(card.getBalance())
                         .build();
             } catch (DataIntegrityViolationException ex) {
-                log.warn("Попытка {}: дублирование номера карты, пробуем снова", attempts);
+                log.warn("Try #{}: duplicated card number, trying again", attempts);
                 if (attempts >= MAX_RETRIES) {
-                    log.error("Не удалось сгенерировать уникальный номер карты после {} попыток", MAX_RETRIES);
-                    throw new RuntimeException("Ошибка генерации уникального номера карты", ex);
+                    log.error("Card number generation error: cannot generate card number after {} attempts", MAX_RETRIES);
+                    throw new CardNumberGenerationException("Card number generation error");
                 }
             }
         }

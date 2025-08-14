@@ -8,11 +8,11 @@ import com.example.bankcards.entity.RefreshToken;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.entity.UserRole;
 import com.example.bankcards.exception.ConflictException;
+import com.example.bankcards.exception.LoginFailedException;
 import com.example.bankcards.exception.NotFoundException;
 import com.example.bankcards.repository.RefreshTokenRepository;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.security.service.JwtService;
-import com.example.bankcards.util.SecurityUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,9 +40,9 @@ public class AuthService {
 
     @Transactional
     public ResponseRegisterDto register (RequestRegisterDto dto) {
-        log.info("try register"); // TODO - нормальные логи
+        log.info("User with email '{}' trying to register", dto.getEmail());
         if (userRepository.existsByEmail(dto.getEmail())) {
-            log.warn("already exists"); // TODO - нормальные логи
+            log.warn("Registration error: user with email '{}' already exists", dto.getEmail());
             throw new ConflictException("already exists");
         }
 
@@ -57,7 +57,7 @@ public class AuthService {
                 .build();
 
         userRepository.save(user);
-        log.info("user created"); // TODO - нормальные логи
+        log.info("User with email '{}' registered successfully", user.getEmail());
 
         return ResponseRegisterDto.builder()
                 .id(user.getId())
@@ -67,7 +67,7 @@ public class AuthService {
 
     public ResponseLoginDto login (RequestLoginDto dto) {
         try {
-            log.info("try login"); // TODO - нормальные логи
+            log.info("User with email '{}' trying to login", dto.getEmail());
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             dto.getEmail(),
@@ -76,7 +76,10 @@ public class AuthService {
             );
 
             User user = userRepository.findByEmail(authentication.getName())
-                    .orElseThrow(() -> new NotFoundException("user not found"));
+                    .orElseThrow(() -> {
+                        log.warn("Login error: user with email '{}' not found", dto.getEmail());
+                        return new NotFoundException("user not found");
+                    });
 
             String accessToken = jwtService.generateAccessToken(user.getEmail(), user.getId(), user.getRole().name());
             String refreshToken = jwtService.generateRefreshToken(user.getEmail());
@@ -91,14 +94,14 @@ public class AuthService {
                             .build()
             );
 
-            log.info("success login"); // TODO - нормальные логи
+            log.info("User with email '{}' logged in successfully", user.getEmail());
             return new ResponseLoginDto(accessToken, refreshToken);
         } catch (BadCredentialsException e) {
-            log.warn("wrong login or pass"); // TODO - нормальные логи
-            throw e;
+            log.warn("Login error: user '{}', wrong email or password", dto.getEmail());
+            throw new LoginFailedException("bad credentials");
         } catch (DisabledException e) {
-            log.warn("user disabled"); // TODO - нормальные логи
-            throw e;
+            log.warn("Login error: user '{}' is disabled", dto.getEmail());
+            throw new LoginFailedException("user disabled");
         }
     }
 }

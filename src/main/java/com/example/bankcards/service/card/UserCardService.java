@@ -5,7 +5,9 @@ import com.example.bankcards.dto.card.request.ResponseBlockDto;
 import com.example.bankcards.dto.card.select.ResponseCardDto;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardBlockRequest;
+import com.example.bankcards.entity.CardStatus;
 import com.example.bankcards.entity.RequestStatus;
+import com.example.bankcards.exception.ConflictException;
 import com.example.bankcards.exception.NotFoundException;
 import com.example.bankcards.mapper.CardMapper;
 import com.example.bankcards.repository.CardBlockRequestRepository;
@@ -19,9 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -42,6 +42,11 @@ public class UserCardService {
                     log.warn("Block request error: card with id '{}' not found", cardId);
                     return new NotFoundException("card not found");
                 });
+
+        if (card.getStatus() == CardStatus.BLOCKED) {
+            log.warn("Block request error: card with id '{}' already blocked", cardId);
+            throw new ConflictException("Card already blocked");
+        }
 
         CardBlockRequest request = CardBlockRequest.builder()
                 .cardId(card.getId())
