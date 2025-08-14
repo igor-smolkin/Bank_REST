@@ -44,16 +44,15 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // Разрешаем доступ ко всем ресурсам внутри /auth (для регистрации или входа)
                 .authorizeHttpRequests(auth -> auth
-                                // TODO - Нужно чтобы доступ был согласно ТЗ по ролям ADMIN / USER
-                                .requestMatchers(
-                                        "/v3/api-docs/**",
-                                        "/swagger-ui/**",
-                                        "/swagger-ui.html",
-                                        "/auth/**")
-                                .permitAll()
-                                // Все остальные запросы будут требовать аутентификацию
-                                .anyRequest().authenticated()
-                        // TODO - Нужно чтобы доступ был согласно ТЗ по ролям ADMIN / USER
+                        // TODO - Поменять уровни доступа при надобности
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/auth/**")
+                        .permitAll()
+                        // Все остальные запросы будут требовать аутентификацию
+                        .anyRequest().authenticated()
                 )
                 .userDetailsService(userDetailsService)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

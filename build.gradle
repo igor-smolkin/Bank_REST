@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.5.4'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id "org.springdoc.openapi-gradle-plugin" version "1.6.0"
 }
 
 group = 'org.ataraxii'
@@ -38,6 +39,13 @@ dependencies {
 	implementation("io.jsonwebtoken:jjwt-api:0.12.6")
 	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
+}
+
+openApi {
+	apiDocsUrl.set("http://localhost:8080/v3/api-docs")
+	outputDir.set(file("${projectDir}/docs"))
+	outputFileName.set("openapi.yaml")
+	waitTimeInSeconds.set(5)
 }
 
 tasks.named('test') {
