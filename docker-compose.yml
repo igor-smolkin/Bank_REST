@@ -2,6 +2,7 @@ version: '3.8'
 services:
 
   bank_rest:
+    image: bank_rest:latest
     build:
       context: .
     container_name: bank_rest_api

@@ -30,7 +30,7 @@ Bank_REST
 ├── .gitignore
 ├── Dockerfile
 ├── docker-compose.yml
-├── pom.xml
+├── build.gradle
 ├── README.md
 ├── docs/
 │   └── openapi.yaml
